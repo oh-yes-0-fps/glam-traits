@@ -5,7 +5,9 @@ edition = "2024"
 license = "Apache-2.0"
 authors = ["Bowan Foryt <bowan@valstad.com>"]
 description = "Traits over glam vector and matrix types"
-repository = "https://github.com/valstad-shipworks/glam-traits"
+repository = "https://github.com/oh-yes-0-fps/glam-traits"
+keywords = ["traits", "glam", "math", "vector", "matrix"]
+
 
 [features]
 default = []
