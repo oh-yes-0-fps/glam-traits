@@ -1,5 +1,5 @@
 [package]
-name = "glam-traits"
+name = "glam-traits-ext"
 version = "0.32.1"
 edition = "2024"
 license = "Apache-2.0"
