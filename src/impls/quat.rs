@@ -3,8 +3,15 @@ use crate::TQuat;
 macro_rules! impl_interface_quat {
     ($t:ty, $f:ty, $vec2:ty, $vec3:ty, $vec4:ty) => {
         impl TQuat<$f> for $t {
+            type MaybeAligned = $t;
+
             const IDENTITY: Self = <$t>::IDENTITY;
             const NAN: Self = <$t>::NAN;
+
+            #[inline]
+            fn maybe_align(&self) -> Self::MaybeAligned {
+                *self
+            }
 
             #[inline]
             fn from_vec4(v: $vec4) -> Self {

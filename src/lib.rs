@@ -165,7 +165,7 @@ pub trait IntScalar: PrimInt {
 }
 
 pub(crate) trait BaseType:
-    std::fmt::Debug + Copy + Sized + Send + Sync + 'static + SerdeShim + ArbitraryShim
+    std::fmt::Debug + Copy + Sized + Send + Sync + 'static + SerdeShim + ArbitraryShim + Into<Self> + From<Self>
 {
 }
 
@@ -476,11 +476,27 @@ pub trait TVec2<F: FloatScalar>:
     + Into<[F; 2]>
     + Into<(F, F)>
 {
+    type MaybeAligned: TVec2<F>;
+
     const X: Self;
     const Y: Self;
     const NEG_X: Self;
     const NEG_Y: Self;
     const AXES: [Self; 2];
+
+    #[must_use]
+    fn maybe_align(&self) -> Self::MaybeAligned;
+
+    #[must_use]
+    #[inline]
+    fn x(&self) -> F {
+        self[0]
+    }
+    #[must_use]
+    #[inline]
+    fn y(&self) -> F {
+        self[1]
+    }
 
     #[must_use]
     fn new(x: F, y: F) -> Self {
@@ -531,6 +547,8 @@ pub trait TVec3<F: FloatScalar>:
     + Into<[F; 3]>
     + Into<(F, F, F)>
 {
+    type MaybeAligned: TVec3<F>;
+
     const X: Self;
     const Y: Self;
     const Z: Self;
@@ -538,6 +556,25 @@ pub trait TVec3<F: FloatScalar>:
     const NEG_Y: Self;
     const NEG_Z: Self;
     const AXES: [Self; 3];
+
+    #[must_use]
+    fn maybe_align(&self) -> Self::MaybeAligned;
+
+    #[must_use]
+    #[inline]
+    fn x(&self) -> F {
+        self[0]
+    }
+    #[must_use]
+    #[inline]
+    fn y(&self) -> F {
+        self[1]
+    }
+    #[must_use]
+    #[inline]
+    fn z(&self) -> F {
+        self[2]
+    }
 
     #[must_use]
     fn new(x: F, y: F, z: F) -> Self {
@@ -596,6 +633,8 @@ pub trait TVec4<F: FloatScalar>:
     + Into<[F; 4]>
     + Into<(F, F, F, F)>
 {
+    type MaybeAligned: TVec4<F>;
+
     const X: Self;
     const Y: Self;
     const Z: Self;
@@ -605,6 +644,30 @@ pub trait TVec4<F: FloatScalar>:
     const NEG_Z: Self;
     const NEG_W: Self;
     const AXES: [Self; 4];
+
+    #[must_use]
+    fn maybe_align(&self) -> Self::MaybeAligned;
+
+    #[must_use]
+    #[inline]
+    fn x(&self) -> F {
+        self[0]
+    }
+    #[must_use]
+    #[inline]
+    fn y(&self) -> F {
+        self[1]
+    }
+    #[must_use]
+    #[inline]
+    fn z(&self) -> F {
+        self[2]
+    }
+    #[must_use]
+    #[inline]
+    fn w(&self) -> F {
+        self[3]
+    }
 
     #[must_use]
     fn new(x: F, y: F, z: F, w: F) -> Self {
@@ -665,8 +728,34 @@ pub trait TQuat<F: FloatScalar>:
     + Into<(F, F, F, F)>
     + std::fmt::Display
 {
+    type MaybeAligned: TQuat<F>;
+
     const IDENTITY: Self;
     const NAN: Self;
+
+    #[must_use]
+    fn maybe_align(&self) -> Self::MaybeAligned;
+
+    #[must_use]
+    #[inline]
+    fn x(&self) -> F {
+        <Self as AsRef<[F; 4]>>::as_ref(self)[0]
+    }
+    #[must_use]
+    #[inline]
+    fn y(&self) -> F {
+        <Self as AsRef<[F; 4]>>::as_ref(self)[1]
+    }
+    #[must_use]
+    #[inline]
+    fn z(&self) -> F {
+        <Self as AsRef<[F; 4]>>::as_ref(self)[2]
+    }
+    #[must_use]
+    #[inline]
+    fn w(&self) -> F {
+        <Self as AsRef<[F; 4]>>::as_ref(self)[3]
+    }
 
     #[must_use]
     fn from_xyzw(x: F, y: F, z: F, w: F) -> Self {
@@ -843,6 +932,22 @@ pub trait TMat2<F: FloatScalar>:
     + AsRef<[F; 4]>
     + AsMut<[F; 4]>
 {
+    type MaybeAligned: TMat2<F>;
+
+    #[must_use]
+    fn maybe_align(&self) -> Self::MaybeAligned;
+
+    #[must_use]
+    #[inline]
+    fn x_axis(&self) -> F::Vec2 {
+        self.col(0)
+    }
+    #[must_use]
+    #[inline]
+    fn y_axis(&self) -> F::Vec2 {
+        self.col(1)
+    }
+
     #[must_use]
     fn from_cols(x_axis: F::Vec2, y_axis: F::Vec2) -> Self;
     #[must_use]
@@ -862,16 +967,35 @@ pub trait TMat2<F: FloatScalar>:
 }
 
 pub trait TMat3<F: FloatScalar>:
-    FloatMat<F, Col = F::Vec3>
+    FloatMat<F, Col: TVec3<F>>
     + RotationLike3d<F>
     + LossyAlignable<Aligned = glam::Mat3A>
     + ScalarCastable<f32, Casted = glam::Mat3>
     + ScalarCastable<f64, Casted = glam::DMat3>
     + ArrayLike<9, Element = F>
     + Mul<F::Vec3, Output = F::Vec3>
-    + AsRef<[F; 9]>
-    + AsMut<[F; 9]>
 {
+    type MaybeAligned: TMat3<F>;
+
+    #[must_use]
+    fn maybe_align(&self) -> Self::MaybeAligned;
+
+    #[must_use]
+    #[inline]
+    fn x_axis(&self) -> <Self as FloatMat<F>>::Col {
+        self.col(0)
+    }
+    #[must_use]
+    #[inline]
+    fn y_axis(&self) -> <Self as FloatMat<F>>::Col {
+        self.col(1)
+    }
+    #[must_use]
+    #[inline]
+    fn z_axis(&self) -> <Self as FloatMat<F>>::Col {
+        self.col(2)
+    }
+
     #[must_use]
     fn from_cols(x_axis: F::Vec3, y_axis: F::Vec3, z_axis: F::Vec3) -> Self;
     #[must_use]
@@ -910,6 +1034,32 @@ pub trait TMat4<F: FloatScalar>:
     + AsRef<[F; 16]>
     + AsMut<[F; 16]>
 {
+    type MaybeAligned: TMat4<F>;
+
+    #[must_use]
+    fn maybe_align(&self) -> Self::MaybeAligned;
+
+    #[must_use]
+    #[inline]
+    fn x_axis(&self) -> F::Vec4 {
+        self.col(0)
+    }
+    #[must_use]
+    #[inline]
+    fn y_axis(&self) -> F::Vec4 {
+        self.col(1)
+    }
+    #[must_use]
+    #[inline]
+    fn z_axis(&self) -> F::Vec4 {
+        self.col(2)
+    }
+    #[must_use]
+    #[inline]
+    fn w_axis(&self) -> F::Vec4 {
+        self.col(3)
+    }
+
     #[must_use]
     fn from_cols(x_axis: F::Vec4, y_axis: F::Vec4, z_axis: F::Vec4, w_axis: F::Vec4) -> Self;
     #[must_use]
@@ -1019,6 +1169,16 @@ pub trait TAffine2<F: FloatScalar>:
     + ScalarCastable<f64, Casted = glam::DAffine2>
     + Mul<F::Mat3, Output = F::Mat3>
 {
+    type MaybeAligned: TAffine2<F>;
+
+    #[must_use]
+    fn maybe_align(&self) -> Self::MaybeAligned;
+
+    #[must_use]
+    fn matrix2(&self) -> F::Mat2;
+    #[must_use]
+    fn translation(&self) -> F::Vec2;
+
     #[must_use]
     fn from_cols(x_axis: F::Vec2, y_axis: F::Vec2, z_axis: F::Vec2) -> Self;
     #[must_use]
@@ -1051,6 +1211,16 @@ pub trait TAffine3<F: FloatScalar>:
     + ScalarCastable<f64, Casted = glam::DAffine3>
     + Mul<F::Mat4, Output = F::Mat4>
 {
+    type MaybeAligned: TAffine3<F>;
+
+    #[must_use]
+    fn maybe_align(&self) -> Self::MaybeAligned;
+
+    #[must_use]
+    fn matrix3(&self) -> F::Mat3;
+    #[must_use]
+    fn translation(&self) -> F::Vec3;
+
     #[must_use]
     fn from_cols(
         x_axis: F::Vec3,
@@ -1125,6 +1295,22 @@ pub trait TBVec2:
     + From<[bool; 2]>
     + Into<[bool; 2]>
 {
+    type MaybeAligned: TBVec2;
+
+    #[must_use]
+    fn maybe_align(&self) -> Self::MaybeAligned;
+
+    #[must_use]
+    #[inline]
+    fn x(&self) -> bool {
+        self.test(0)
+    }
+    #[must_use]
+    #[inline]
+    fn y(&self) -> bool {
+        self.test(1)
+    }
+
     #[must_use]
     fn new(x: bool, y: bool) -> Self {
         Self::from_array([x, y])
@@ -1138,6 +1324,27 @@ pub trait TBVec3:
     + From<[bool; 3]>
     + Into<[bool; 3]>
 {
+    type MaybeAligned: TBVec3;
+
+    #[must_use]
+    fn maybe_align(&self) -> Self::MaybeAligned;
+
+    #[must_use]
+    #[inline]
+    fn x(&self) -> bool {
+        self.test(0)
+    }
+    #[must_use]
+    #[inline]
+    fn y(&self) -> bool {
+        self.test(1)
+    }
+    #[must_use]
+    #[inline]
+    fn z(&self) -> bool {
+        self.test(2)
+    }
+
     #[must_use]
     fn new(x: bool, y: bool, z: bool) -> Self {
         Self::from_array([x, y, z])
@@ -1151,6 +1358,32 @@ pub trait TBVec4:
     + From<[bool; 4]>
     + Into<[bool; 4]>
 {
+    type MaybeAligned: TBVec4;
+
+    #[must_use]
+    fn maybe_align(&self) -> Self::MaybeAligned;
+
+    #[must_use]
+    #[inline]
+    fn x(&self) -> bool {
+        self.test(0)
+    }
+    #[must_use]
+    #[inline]
+    fn y(&self) -> bool {
+        self.test(1)
+    }
+    #[must_use]
+    #[inline]
+    fn z(&self) -> bool {
+        self.test(2)
+    }
+    #[must_use]
+    #[inline]
+    fn w(&self) -> bool {
+        self.test(3)
+    }
+
     #[must_use]
     fn new(x: bool, y: bool, z: bool, w: bool) -> Self {
         Self::from_array([x, y, z, w])
@@ -1299,9 +1532,25 @@ pub trait TIVec2<I: IntScalar>:
     + Into<[I; 2]>
     + Into<(I, I)>
 {
+    type MaybeAligned: TIVec2<I>;
+
     const X: Self;
     const Y: Self;
     const AXES: [Self; 2];
+
+    #[must_use]
+    fn maybe_align(&self) -> Self::MaybeAligned;
+
+    #[must_use]
+    #[inline]
+    fn x(&self) -> I {
+        self[0]
+    }
+    #[must_use]
+    #[inline]
+    fn y(&self) -> I {
+        self[1]
+    }
 
     #[must_use]
     fn new(x: I, y: I) -> Self {
@@ -1332,10 +1581,31 @@ pub trait TIVec3<I: IntScalar>:
     + Into<[I; 3]>
     + Into<(I, I, I)>
 {
+    type MaybeAligned: TIVec3<I>;
+
     const X: Self;
     const Y: Self;
     const Z: Self;
     const AXES: [Self; 3];
+
+    #[must_use]
+    fn maybe_align(&self) -> Self::MaybeAligned;
+
+    #[must_use]
+    #[inline]
+    fn x(&self) -> I {
+        self[0]
+    }
+    #[must_use]
+    #[inline]
+    fn y(&self) -> I {
+        self[1]
+    }
+    #[must_use]
+    #[inline]
+    fn z(&self) -> I {
+        self[2]
+    }
 
     #[must_use]
     fn new(x: I, y: I, z: I) -> Self {
@@ -1366,11 +1636,37 @@ pub trait TIVec4<I: IntScalar>:
     + Into<[I; 4]>
     + Into<(I, I, I, I)>
 {
+    type MaybeAligned: TIVec4<I>;
+
     const X: Self;
     const Y: Self;
     const Z: Self;
     const W: Self;
     const AXES: [Self; 4];
+
+    #[must_use]
+    fn maybe_align(&self) -> Self::MaybeAligned;
+
+    #[must_use]
+    #[inline]
+    fn x(&self) -> I {
+        self[0]
+    }
+    #[must_use]
+    #[inline]
+    fn y(&self) -> I {
+        self[1]
+    }
+    #[must_use]
+    #[inline]
+    fn z(&self) -> I {
+        self[2]
+    }
+    #[must_use]
+    #[inline]
+    fn w(&self) -> I {
+        self[3]
+    }
 
     #[must_use]
     fn new(x: I, y: I, z: I, w: I) -> Self {

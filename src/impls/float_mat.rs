@@ -88,9 +88,94 @@ impl_float_mat!(glam::DMat2, f64, glam::DVec2);
 impl_float_mat!(glam::DMat3, f64, glam::DVec3);
 impl_float_mat!(glam::DMat4, f64, glam::DVec4);
 
+// Mat3A's columns are Vec3A, but its `from_diagonal` and `mul_diagonal_scale`
+// take Vec3, so we provide a hand-written impl that converts at the boundary.
+impl FloatMat<f32> for glam::Mat3A {
+    type Col = glam::Vec3A;
+
+    const ZERO: Self = glam::Mat3A::ZERO;
+    const IDENTITY: Self = glam::Mat3A::IDENTITY;
+    const NAN: Self = glam::Mat3A::NAN;
+
+    #[inline]
+    fn from_diagonal(diagonal: Self::Col) -> Self {
+        glam::Mat3A::from_diagonal(glam::Vec3::from(diagonal))
+    }
+    #[inline]
+    fn from_cols_slice(slice: &[f32]) -> Self {
+        glam::Mat3A::from_cols_slice(slice)
+    }
+    #[inline]
+    fn write_cols_to_slice(&self, slice: &mut [f32]) {
+        glam::Mat3A::write_cols_to_slice(self, slice)
+    }
+    #[inline]
+    fn col(&self, index: usize) -> Self::Col {
+        glam::Mat3A::col(self, index)
+    }
+    #[inline]
+    fn col_mut(&mut self, index: usize) -> &mut Self::Col {
+        glam::Mat3A::col_mut(self, index)
+    }
+    #[inline]
+    fn row(&self, index: usize) -> Self::Col {
+        glam::Mat3A::row(self, index)
+    }
+    #[inline]
+    fn is_finite(&self) -> bool {
+        glam::Mat3A::is_finite(self)
+    }
+    #[inline]
+    fn is_nan(&self) -> bool {
+        glam::Mat3A::is_nan(self)
+    }
+    #[inline]
+    fn transpose(&self) -> Self {
+        glam::Mat3A::transpose(self)
+    }
+    #[inline]
+    fn diagonal(&self) -> Self::Col {
+        glam::Mat3A::diagonal(self)
+    }
+    #[inline]
+    fn determinant(&self) -> f32 {
+        glam::Mat3A::determinant(self)
+    }
+    #[inline]
+    fn inverse(&self) -> Self {
+        glam::Mat3A::inverse(self)
+    }
+    #[inline]
+    fn try_inverse(&self) -> Option<Self> {
+        glam::Mat3A::try_inverse(self)
+    }
+    #[inline]
+    fn mul_diagonal_scale(&self, scale: Self::Col) -> Self {
+        glam::Mat3A::mul_diagonal_scale(self, glam::Vec3::from(scale))
+    }
+    #[inline]
+    fn recip(&self) -> Self {
+        glam::Mat3A::recip(self)
+    }
+    #[inline]
+    fn abs_diff_eq(&self, rhs: Self, max_abs_diff: f32) -> bool {
+        glam::Mat3A::abs_diff_eq(self, rhs, max_abs_diff)
+    }
+    #[inline]
+    fn abs(&self) -> Self {
+        glam::Mat3A::abs(self)
+    }
+}
+
 macro_rules! impl_interface_mat2 {
     ($mat:ty, $f:ty, $vec2:ty, $mat3:ty) => {
         impl TMat2<$f> for $mat {
+            type MaybeAligned = $mat;
+
+            #[inline]
+            fn maybe_align(&self) -> Self::MaybeAligned {
+                *self
+            }
             #[inline]
             fn from_cols(x_axis: $vec2, y_axis: $vec2) -> Self {
                 <$mat>::from_cols(x_axis, y_axis)
@@ -131,11 +216,29 @@ impl_interface_mat2!(glam::Mat2, f32, glam::Vec2, glam::Mat3);
 impl_interface_mat2!(glam::DMat2, f64, glam::DVec2, glam::DMat3);
 
 macro_rules! impl_interface_mat3 {
-    ($mat:ty, $f:ty, $vec2:ty, $vec3:ty, $mat2:ty, $mat4:ty) => {
+    (
+        $mat:ty,
+        $f:ty,
+        $vec2:ty,
+        $vec3:ty,
+        $mat2:ty,
+        $mat4:ty,
+        $aligned:ty,
+        $align:expr,
+        $from_cols:expr
+    ) => {
         impl TMat3<$f> for $mat {
+            type MaybeAligned = $aligned;
+
+            #[inline]
+            fn maybe_align(&self) -> Self::MaybeAligned {
+                let f: fn(&$mat) -> $aligned = $align;
+                f(self)
+            }
             #[inline]
             fn from_cols(x_axis: $vec3, y_axis: $vec3, z_axis: $vec3) -> Self {
-                <$mat>::from_cols(x_axis, y_axis, z_axis)
+                let f: fn($vec3, $vec3, $vec3) -> $mat = $from_cols;
+                f(x_axis, y_axis, z_axis)
             }
             #[inline]
             fn from_cols_array(m: &[$f; 9]) -> Self {
@@ -189,12 +292,53 @@ macro_rules! impl_interface_mat3 {
     };
 }
 
-impl_interface_mat3!(glam::Mat3, f32, glam::Vec2, glam::Vec3, glam::Mat2, glam::Mat4);
-impl_interface_mat3!(glam::DMat3, f64, glam::DVec2, glam::DVec3, glam::DMat2, glam::DMat4);
+impl_interface_mat3!(
+    glam::Mat3,
+    f32,
+    glam::Vec2,
+    glam::Vec3,
+    glam::Mat2,
+    glam::Mat4,
+    glam::Mat3A,
+    |m| glam::Mat3A::from(*m),
+    |x, y, z| glam::Mat3::from_cols(x, y, z)
+);
+impl_interface_mat3!(
+    glam::Mat3A,
+    f32,
+    glam::Vec2,
+    glam::Vec3,
+    glam::Mat2,
+    glam::Mat4,
+    glam::Mat3A,
+    |m| *m,
+    |x, y, z| glam::Mat3A::from_cols(
+        glam::Vec3A::from(x),
+        glam::Vec3A::from(y),
+        glam::Vec3A::from(z),
+    )
+);
+impl_interface_mat3!(
+    glam::DMat3,
+    f64,
+    glam::DVec2,
+    glam::DVec3,
+    glam::DMat2,
+    glam::DMat4,
+    glam::DMat3,
+    |m| *m,
+    |x, y, z| glam::DMat3::from_cols(x, y, z)
+);
 
 macro_rules! impl_interface_mat4 {
     ($mat:ty, $f:ty, $vec3:ty, $vec4:ty, $quat:ty, $mat3:ty) => {
         impl TMat4<$f> for $mat {
+            type MaybeAligned = $mat;
+
+            #[inline]
+            fn maybe_align(&self) -> Self::MaybeAligned {
+                *self
+            }
             #[inline]
             fn from_cols(x_axis: $vec4, y_axis: $vec4, z_axis: $vec4, w_axis: $vec4) -> Self {
                 <$mat>::from_cols(x_axis, y_axis, z_axis, w_axis)

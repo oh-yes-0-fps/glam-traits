@@ -150,6 +150,56 @@ impl FloatAffine<f32> for glam::Affine3 {
     }
 }
 
+impl FloatAffine<f32> for glam::Affine3A {
+    type Vec = glam::Vec3;
+    type Mat = glam::Mat3;
+
+    const ZERO: Self = glam::Affine3A::ZERO;
+    const IDENTITY: Self = glam::Affine3A::IDENTITY;
+    const NAN: Self = glam::Affine3A::NAN;
+
+    #[inline]
+    fn from_scale(scale: Self::Vec) -> Self {
+        glam::Affine3A::from_scale(scale)
+    }
+    #[inline]
+    fn from_translation(translation: Self::Vec) -> Self {
+        glam::Affine3A::from_translation(translation)
+    }
+    #[inline]
+    fn from_cols_slice(slice: &[f32]) -> Self {
+        glam::Affine3A::from_cols_slice(slice)
+    }
+    #[inline]
+    fn write_cols_to_slice(&self, slice: &mut [f32]) {
+        glam::Affine3A::write_cols_to_slice(self, slice)
+    }
+    #[inline]
+    fn transform_point(&self, rhs: Self::Vec) -> Self::Vec {
+        self.transform_point3(rhs)
+    }
+    #[inline]
+    fn transform_vector(&self, rhs: Self::Vec) -> Self::Vec {
+        self.transform_vector3(rhs)
+    }
+    #[inline]
+    fn is_finite(&self) -> bool {
+        glam::Affine3A::is_finite(self)
+    }
+    #[inline]
+    fn is_nan(&self) -> bool {
+        glam::Affine3A::is_nan(self)
+    }
+    #[inline]
+    fn abs_diff_eq(&self, rhs: Self, max_abs_diff: f32) -> bool {
+        glam::Affine3A::abs_diff_eq(self, rhs, max_abs_diff)
+    }
+    #[inline]
+    fn inverse(&self) -> Self {
+        glam::Affine3A::inverse(self)
+    }
+}
+
 impl FloatAffine<f64> for glam::DAffine3 {
     type Vec = glam::DVec3;
     type Mat = glam::DMat3;
@@ -203,6 +253,20 @@ impl FloatAffine<f64> for glam::DAffine3 {
 macro_rules! impl_interface_affine2 {
     ($t:ty, $f:ty, $vec2:ty, $mat2:ty, $mat3:ty) => {
         impl TAffine2<$f> for $t {
+            type MaybeAligned = $t;
+
+            #[inline]
+            fn maybe_align(&self) -> Self::MaybeAligned {
+                *self
+            }
+            #[inline]
+            fn matrix2(&self) -> $mat2 {
+                self.matrix2
+            }
+            #[inline]
+            fn translation(&self) -> $vec2 {
+                self.translation
+            }
             #[inline]
             fn from_cols(x_axis: $vec2, y_axis: $vec2, z_axis: $vec2) -> Self {
                 <$t>::from_cols(x_axis, y_axis, z_axis)
@@ -255,8 +319,33 @@ impl_interface_affine2!(glam::Affine2, f32, glam::Vec2, glam::Mat2, glam::Mat3);
 impl_interface_affine2!(glam::DAffine2, f64, glam::DVec2, glam::DMat2, glam::DMat3);
 
 macro_rules! impl_interface_affine3 {
-    ($t:ty, $f:ty, $vec3:ty, $quat:ty, $mat3:ty, $mat4:ty) => {
+    (
+        $t:ty,
+        $f:ty,
+        $vec3:ty,
+        $quat:ty,
+        $mat3:ty,
+        $mat4:ty,
+        $aligned:ty,
+        $align:expr,
+        $from_cols:expr
+    ) => {
         impl TAffine3<$f> for $t {
+            type MaybeAligned = $aligned;
+
+            #[inline]
+            fn maybe_align(&self) -> Self::MaybeAligned {
+                let f: fn(&$t) -> $aligned = $align;
+                f(self)
+            }
+            #[inline]
+            fn matrix3(&self) -> $mat3 {
+                <$mat3>::from(self.matrix3)
+            }
+            #[inline]
+            fn translation(&self) -> $vec3 {
+                <$vec3>::from(self.translation)
+            }
             #[inline]
             fn from_cols(
                 x_axis: $vec3,
@@ -264,7 +353,8 @@ macro_rules! impl_interface_affine3 {
                 z_axis: $vec3,
                 w_axis: $vec3,
             ) -> Self {
-                <$t>::from_cols(x_axis, y_axis, z_axis, w_axis)
+                let f: fn($vec3, $vec3, $vec3, $vec3) -> $t = $from_cols;
+                f(x_axis, y_axis, z_axis, w_axis)
             }
             #[inline]
             fn from_mat3_translation(matrix3: $mat3, translation: $vec3) -> Self {
@@ -322,5 +412,41 @@ macro_rules! impl_interface_affine3 {
     };
 }
 
-impl_interface_affine3!(glam::Affine3, f32, glam::Vec3, glam::Quat, glam::Mat3, glam::Mat4);
-impl_interface_affine3!(glam::DAffine3, f64, glam::DVec3, glam::DQuat, glam::DMat3, glam::DMat4);
+impl_interface_affine3!(
+    glam::Affine3,
+    f32,
+    glam::Vec3,
+    glam::Quat,
+    glam::Mat3,
+    glam::Mat4,
+    glam::Affine3A,
+    |a| glam::Affine3A::from(*a),
+    |x, y, z, w| glam::Affine3::from_cols(x, y, z, w)
+);
+impl_interface_affine3!(
+    glam::Affine3A,
+    f32,
+    glam::Vec3,
+    glam::Quat,
+    glam::Mat3,
+    glam::Mat4,
+    glam::Affine3A,
+    |a| *a,
+    |x, y, z, w| glam::Affine3A::from_cols(
+        glam::Vec3A::from(x),
+        glam::Vec3A::from(y),
+        glam::Vec3A::from(z),
+        glam::Vec3A::from(w),
+    )
+);
+impl_interface_affine3!(
+    glam::DAffine3,
+    f64,
+    glam::DVec3,
+    glam::DQuat,
+    glam::DMat3,
+    glam::DMat4,
+    glam::DAffine3,
+    |a| *a,
+    |x, y, z, w| glam::DAffine3::from_cols(x, y, z, w)
+);

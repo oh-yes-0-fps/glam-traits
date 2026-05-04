@@ -101,6 +101,29 @@ impl LossyAlignable for glam::DAffine3 {
     }
 }
 
+// Already-aligned f32 SIMD types align to themselves.
+impl LossyAlignable for glam::Vec3A {
+    type Aligned = glam::Vec3A;
+    #[inline]
+    fn align(&self) -> Self::Aligned {
+        *self
+    }
+}
+impl LossyAlignable for glam::Mat3A {
+    type Aligned = glam::Mat3A;
+    #[inline]
+    fn align(&self) -> Self::Aligned {
+        *self
+    }
+}
+impl LossyAlignable for glam::Affine3A {
+    type Aligned = glam::Affine3A;
+    #[inline]
+    fn align(&self) -> Self::Aligned {
+        *self
+    }
+}
+
 macro_rules! array_like {
     ($t:ty, $elem:ty, $n:literal) => {
         impl ArrayLike<$n> for $t {
@@ -132,6 +155,7 @@ macro_rules! array_like {
 
 array_like!(glam::Vec2, f32, 2);
 array_like!(glam::Vec3, f32, 3);
+array_like!(glam::Vec3A, f32, 3);
 array_like!(glam::Vec4, f32, 4);
 array_like!(glam::DVec2, f64, 2);
 array_like!(glam::DVec3, f64, 3);
@@ -279,6 +303,7 @@ macro_rules! mat_array_like {
 
 mat_array_like!(glam::Mat2, f32, 4, 2, 2);
 mat_array_like!(glam::Mat3, f32, 9, 3, 3);
+mat_array_like!(glam::Mat3A, f32, 9, 3, 3);
 mat_array_like!(glam::Mat4, f32, 16, 4, 4);
 mat_array_like!(glam::DMat2, f64, 4, 2, 2);
 mat_array_like!(glam::DMat3, f64, 9, 3, 3);
@@ -320,6 +345,7 @@ macro_rules! affine_array_like {
 
 affine_array_like!(glam::Affine2, f32, 6, 2, 3);
 affine_array_like!(glam::Affine3, f32, 12, 3, 4);
+affine_array_like!(glam::Affine3A, f32, 12, 3, 4);
 affine_array_like!(glam::DAffine2, f64, 6, 2, 3);
 affine_array_like!(glam::DAffine3, f64, 12, 3, 4);
 
@@ -389,3 +415,54 @@ scalar_castable_via!(glam::DMat3, glam::Mat3, f32, as_mat3, true);
 scalar_castable_via!(glam::DMat4, glam::Mat4, f32, as_mat4, true);
 scalar_castable_via!(glam::DAffine2, glam::Affine2, f32, as_affine2, true);
 scalar_castable_via!(glam::DAffine3, glam::Affine3, f32, as_affine3, true);
+
+// SIMD-aligned f32 types: cast to canonical Vec3/Mat3/Affine3 (unalign) for f32,
+// and round-trip through the canonical types to reach f64 forms.
+impl ScalarCastable<f32> for glam::Vec3A {
+    const LOSSY_CAST: bool = false;
+    type Casted = glam::Vec3;
+    #[inline]
+    fn cast(&self) -> Self::Casted {
+        glam::Vec3::from(*self)
+    }
+}
+impl ScalarCastable<f64> for glam::Vec3A {
+    const LOSSY_CAST: bool = false;
+    type Casted = glam::DVec3;
+    #[inline]
+    fn cast(&self) -> Self::Casted {
+        glam::Vec3::from(*self).as_dvec3()
+    }
+}
+impl ScalarCastable<f32> for glam::Mat3A {
+    const LOSSY_CAST: bool = false;
+    type Casted = glam::Mat3;
+    #[inline]
+    fn cast(&self) -> Self::Casted {
+        glam::Mat3::from(*self)
+    }
+}
+impl ScalarCastable<f64> for glam::Mat3A {
+    const LOSSY_CAST: bool = false;
+    type Casted = glam::DMat3;
+    #[inline]
+    fn cast(&self) -> Self::Casted {
+        self.as_dmat3()
+    }
+}
+impl ScalarCastable<f32> for glam::Affine3A {
+    const LOSSY_CAST: bool = false;
+    type Casted = glam::Affine3;
+    #[inline]
+    fn cast(&self) -> Self::Casted {
+        glam::Affine3::from(*self)
+    }
+}
+impl ScalarCastable<f64> for glam::Affine3A {
+    const LOSSY_CAST: bool = false;
+    type Casted = glam::DAffine3;
+    #[inline]
+    fn cast(&self) -> Self::Casted {
+        self.as_daffine3()
+    }
+}

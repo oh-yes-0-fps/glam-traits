@@ -46,6 +46,24 @@ impl_bool_vec!(
     glam::BVec4::new(true, true, true, true)
 );
 
-impl TBVec2 for glam::BVec2 {}
-impl TBVec3 for glam::BVec3 {}
-impl TBVec4 for glam::BVec4 {}
+impl TBVec2 for glam::BVec2 {
+    type MaybeAligned = glam::BVec2;
+    #[inline]
+    fn maybe_align(&self) -> Self::MaybeAligned {
+        *self
+    }
+}
+impl TBVec3 for glam::BVec3 {
+    type MaybeAligned = glam::BVec3;
+    #[inline]
+    fn maybe_align(&self) -> Self::MaybeAligned {
+        *self
+    }
+}
+impl TBVec4 for glam::BVec4 {
+    type MaybeAligned = glam::BVec4;
+    #[inline]
+    fn maybe_align(&self) -> Self::MaybeAligned {
+        *self
+    }
+}

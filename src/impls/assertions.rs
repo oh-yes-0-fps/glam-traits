@@ -108,6 +108,10 @@ const _: fn() = || {
     check::<glam::DVec3>();
     check::<glam::DMat3>();
     check::<glam::DAffine3>();
+    // Already-aligned types align to themselves.
+    check::<glam::Vec3A>();
+    check::<glam::Mat3A>();
+    check::<glam::Affine3A>();
 };
 
 // ---------------------------------------------------------------------------
@@ -177,13 +181,16 @@ const _: fn() = || {
 
     check_v2::<glam::Vec2>();
     check_v3::<glam::Vec3>();
+    check_v3::<glam::Vec3A>();
     check_v4::<glam::Vec4>();
     check_q::<glam::Quat>();
     check_m2::<glam::Mat2>();
     check_m3::<glam::Mat3>();
+    check_m3::<glam::Mat3A>();
     check_m4::<glam::Mat4>();
     check_a2::<glam::Affine2>();
     check_a3::<glam::Affine3>();
+    check_a3::<glam::Affine3A>();
 };
 
 const _: fn() = || {
@@ -213,6 +220,7 @@ const _: fn() = || {
     fn check_fv<T: FloatVec<f32>>() {}
     check_fv::<glam::Vec2>();
     check_fv::<glam::Vec3>();
+    check_fv::<glam::Vec3A>();
     check_fv::<glam::Vec4>();
     fn check_fv64<T: FloatVec<f64>>() {}
     check_fv64::<glam::DVec2>();
@@ -222,6 +230,7 @@ const _: fn() = || {
     fn check_fm<T: FloatMat<f32>>() {}
     check_fm::<glam::Mat2>();
     check_fm::<glam::Mat3>();
+    check_fm::<glam::Mat3A>();
     check_fm::<glam::Mat4>();
     fn check_fm64<T: FloatMat<f64>>() {}
     check_fm64::<glam::DMat2>();
@@ -231,6 +240,7 @@ const _: fn() = || {
     fn check_fa<T: FloatAffine<f32>>() {}
     check_fa::<glam::Affine2>();
     check_fa::<glam::Affine3>();
+    check_fa::<glam::Affine3A>();
     fn check_fa64<T: FloatAffine<f64>>() {}
     check_fa64::<glam::DAffine2>();
     check_fa64::<glam::DAffine3>();
@@ -281,6 +291,7 @@ const _: fn() = || {
 const _: fn() = || {
     fn check<F: FloatScalar, T: RotationLike3d<F>>() {}
     check::<f32, glam::Mat3>();
+    check::<f32, glam::Mat3A>();
     check::<f32, glam::Quat>();
     check::<f64, glam::DMat3>();
     check::<f64, glam::DQuat>();
@@ -288,6 +299,7 @@ const _: fn() = || {
     fn check_t<F: FloatScalar, T: TransRotLike3d<F>>() {}
     check_t::<f32, glam::Mat4>();
     check_t::<f32, glam::Affine3>();
+    check_t::<f32, glam::Affine3A>();
     check_t::<f64, glam::DMat4>();
     check_t::<f64, glam::DAffine3>();
 };
@@ -307,7 +319,9 @@ const _: fn() = || {
 
     check2::<glam::Vec2>();
     check3::<glam::Vec3>();
+    check3::<glam::Vec3A>();
     check4::<glam::Vec4>();
+    check9::<glam::Mat3A>();
     check2::<glam::DVec2>();
     check3::<glam::DVec3>();
     check4::<glam::DVec4>();
@@ -329,12 +343,14 @@ const _: fn() = || {
     fn check2d<T: ArrayLike2D>() {}
     check2d::<glam::Mat2>();
     check2d::<glam::Mat3>();
+    check2d::<glam::Mat3A>();
     check2d::<glam::Mat4>();
     check2d::<glam::DMat2>();
     check2d::<glam::DMat3>();
     check2d::<glam::DMat4>();
     check2d::<glam::Affine2>();
     check2d::<glam::Affine3>();
+    check2d::<glam::Affine3A>();
     check2d::<glam::DAffine2>();
     check2d::<glam::DAffine3>();
 };

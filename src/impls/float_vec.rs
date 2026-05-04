@@ -198,6 +198,7 @@ macro_rules! impl_float_vec {
 
 impl_float_vec!(glam::Vec2, f32);
 impl_float_vec!(glam::Vec3, f32);
+impl_float_vec!(glam::Vec3A, f32);
 impl_float_vec!(glam::Vec4, f32);
 impl_float_vec!(glam::DVec2, f64);
 impl_float_vec!(glam::DVec3, f64);
@@ -206,11 +207,18 @@ impl_float_vec!(glam::DVec4, f64);
 macro_rules! impl_interface_vec2 {
     ($vec:ty, $f:ty) => {
         impl TVec2<$f> for $vec {
+            type MaybeAligned = $vec;
+
             const X: Self = <$vec>::X;
             const Y: Self = <$vec>::Y;
             const NEG_X: Self = <$vec>::NEG_X;
             const NEG_Y: Self = <$vec>::NEG_Y;
             const AXES: [Self; 2] = <$vec>::AXES;
+
+            #[inline]
+            fn maybe_align(&self) -> Self::MaybeAligned {
+                *self
+            }
 
             #[inline]
             fn with_x(self, x: $f) -> Self {
@@ -252,8 +260,10 @@ impl_interface_vec2!(glam::Vec2, f32);
 impl_interface_vec2!(glam::DVec2, f64);
 
 macro_rules! impl_interface_vec3 {
-    ($vec:ty, $f:ty, $vec4:ty) => {
+    ($vec:ty, $f:ty, $vec4:ty, $aligned:ty, $align:expr) => {
         impl TVec3<$f> for $vec {
+            type MaybeAligned = $aligned;
+
             const X: Self = <$vec>::X;
             const Y: Self = <$vec>::Y;
             const Z: Self = <$vec>::Z;
@@ -261,6 +271,12 @@ macro_rules! impl_interface_vec3 {
             const NEG_Y: Self = <$vec>::NEG_Y;
             const NEG_Z: Self = <$vec>::NEG_Z;
             const AXES: [Self; 3] = <$vec>::AXES;
+
+            #[inline]
+            fn maybe_align(&self) -> Self::MaybeAligned {
+                let f: fn(&$vec) -> $aligned = $align;
+                f(self)
+            }
 
             #[inline]
             fn with_x(self, x: $f) -> Self {
@@ -306,12 +322,15 @@ macro_rules! impl_interface_vec3 {
     };
 }
 
-impl_interface_vec3!(glam::Vec3, f32, glam::Vec4);
-impl_interface_vec3!(glam::DVec3, f64, glam::DVec4);
+impl_interface_vec3!(glam::Vec3, f32, glam::Vec4, glam::Vec3A, |v| glam::Vec3A::from(*v));
+impl_interface_vec3!(glam::Vec3A, f32, glam::Vec4, glam::Vec3A, |v| *v);
+impl_interface_vec3!(glam::DVec3, f64, glam::DVec4, glam::DVec3, |v| *v);
 
 macro_rules! impl_interface_vec4 {
     ($vec:ty, $f:ty, $vec3:ty) => {
         impl TVec4<$f> for $vec {
+            type MaybeAligned = $vec;
+
             const X: Self = <$vec>::X;
             const Y: Self = <$vec>::Y;
             const Z: Self = <$vec>::Z;
@@ -321,6 +340,11 @@ macro_rules! impl_interface_vec4 {
             const NEG_Z: Self = <$vec>::NEG_Z;
             const NEG_W: Self = <$vec>::NEG_W;
             const AXES: [Self; 4] = <$vec>::AXES;
+
+            #[inline]
+            fn maybe_align(&self) -> Self::MaybeAligned {
+                *self
+            }
 
             #[inline]
             fn with_x(self, x: $f) -> Self {
