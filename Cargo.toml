@@ -1,0 +1,27 @@
+[package]
+name = "glam-traits"
+version = "0.32.1"
+edition = "2024"
+license = "Apache-2.0"
+authors = ["Bowan Foryt <bowan@valstad.com>"]
+description = "Traits over glam vector and matrix types"
+repository = "https://github.com/valstad-shipworks/glam-traits"
+
+[features]
+default = []
+approx = ["dep:approx", "glam/approx"]
+serde = ["dep:serde", "glam/serde"]
+bytemuck = ["dep:bytemuck", "glam/bytemuck"]
+zerocopy = ["dep:zerocopy", "glam/zerocopy"]
+arbitrary = ["dep:arbitrary", "glam/arbitrary"]
+ndarray = ["dep:ndarray"]
+
+[dependencies]
+glam = "0.32.1"
+num-traits = "0.2.19"
+ndarray = { version = "0.17.2", optional = true }
+approx = { version = "0.5", default-features = false, optional = true }
+serde = { version = "1", default-features = false, optional = true }
+bytemuck = { version = "1", default-features = false, optional = true }
+zerocopy = { version = "0.8", default-features = false, optional = true }
+arbitrary = { version = "1", default-features = false, optional = true }
