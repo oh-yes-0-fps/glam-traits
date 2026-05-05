@@ -151,8 +151,8 @@ impl FloatAffine<f32> for glam::Affine3 {
 }
 
 impl FloatAffine<f32> for glam::Affine3A {
-    type Vec = glam::Vec3;
-    type Mat = glam::Mat3;
+    type Vec = glam::Vec3A;
+    type Mat = glam::Mat3A;
 
     const ZERO: Self = glam::Affine3A::ZERO;
     const IDENTITY: Self = glam::Affine3A::IDENTITY;
@@ -160,11 +160,14 @@ impl FloatAffine<f32> for glam::Affine3A {
 
     #[inline]
     fn from_scale(scale: Self::Vec) -> Self {
-        glam::Affine3A::from_scale(scale)
+        glam::Affine3A::from_scale(scale.into())
     }
     #[inline]
     fn from_translation(translation: Self::Vec) -> Self {
-        glam::Affine3A::from_translation(translation)
+        Self {
+            matrix3: glam::Mat3A::IDENTITY,
+            translation,
+        }
     }
     #[inline]
     fn from_cols_slice(slice: &[f32]) -> Self {
@@ -176,11 +179,11 @@ impl FloatAffine<f32> for glam::Affine3A {
     }
     #[inline]
     fn transform_point(&self, rhs: Self::Vec) -> Self::Vec {
-        self.transform_point3(rhs)
+        self.transform_point3a(rhs)
     }
     #[inline]
     fn transform_vector(&self, rhs: Self::Vec) -> Self::Vec {
-        self.transform_vector3(rhs)
+        self.transform_vector3a(rhs)
     }
     #[inline]
     fn is_finite(&self) -> bool {
@@ -423,22 +426,87 @@ impl_interface_affine3!(
     |a| glam::Affine3A::from(*a),
     |x, y, z, w| glam::Affine3::from_cols(x, y, z, w)
 );
-impl_interface_affine3!(
-    glam::Affine3A,
-    f32,
-    glam::Vec3,
-    glam::Quat,
-    glam::Mat3,
-    glam::Mat4,
-    glam::Affine3A,
-    |a| *a,
-    |x, y, z, w| glam::Affine3A::from_cols(
-        glam::Vec3A::from(x),
-        glam::Vec3A::from(y),
-        glam::Vec3A::from(z),
-        glam::Vec3A::from(w),
-    )
-);
+impl TAffine3<f32> for glam::Affine3A {
+    type MaybeAligned = glam::Affine3A;
+
+    #[inline]
+    fn maybe_align(&self) -> Self::MaybeAligned {
+        *self
+    }
+    #[inline]
+    fn matrix3(&self) -> glam::Mat3A {
+        self.matrix3
+    }
+    #[inline]
+    fn translation(&self) -> glam::Vec3A {
+        self.translation
+    }
+    #[inline]
+    fn from_cols(
+        x_axis: glam::Vec3A,
+        y_axis: glam::Vec3A,
+        z_axis: glam::Vec3A,
+        w_axis: glam::Vec3A,
+    ) -> Self {
+        glam::Affine3A::from_cols(x_axis, y_axis, z_axis, w_axis)
+    }
+    #[inline]
+    fn from_mat3_translation(matrix3: glam::Mat3A, translation: glam::Vec3A) -> Self {
+        Self {
+            matrix3,
+            translation,
+        }
+    }
+    #[inline]
+    fn from_cols_array(m: &[f32; 12]) -> Self {
+        glam::Affine3A::from_cols_array(m)
+    }
+    #[inline]
+    fn to_cols_array(&self) -> [f32; 12] {
+        glam::Affine3A::to_cols_array(self)
+    }
+    #[inline]
+    fn from_cols_array_2d(m: &[[f32; 3]; 4]) -> Self {
+        glam::Affine3A::from_cols_array_2d(m)
+    }
+    #[inline]
+    fn to_cols_array_2d(&self) -> [[f32; 3]; 4] {
+        glam::Affine3A::to_cols_array_2d(self)
+    }
+    #[inline]
+    fn from_quat(rotation: glam::Quat) -> Self {
+        glam::Affine3A::from_quat(rotation)
+    }
+    #[inline]
+    fn from_axis_angle(axis: glam::Vec3A, angle: f32) -> Self {
+        glam::Affine3A::from_axis_angle(axis.into(), angle)
+    }
+    #[inline]
+    fn from_mat3(mat3: glam::Mat3A) -> Self {
+        glam::Affine3A::from_mat3(mat3.into())
+    }
+    #[inline]
+    fn from_scale_rotation_translation(
+        scale: glam::Vec3A,
+        rotation: glam::Quat,
+        translation: glam::Vec3A,
+    ) -> Self {
+        glam::Affine3A::from_scale_rotation_translation(scale.into(), rotation, translation.into())
+    }
+    #[inline]
+    fn from_rotation_translation(rotation: glam::Quat, translation: glam::Vec3A) -> Self {
+        glam::Affine3A::from_rotation_translation(rotation, translation.into())
+    }
+    #[inline]
+    fn from_mat4(m: glam::Mat4) -> Self {
+        glam::Affine3A::from_mat4(m)
+    }
+    #[inline]
+    fn to_scale_rotation_translation(&self) -> (glam::Vec3A, glam::Quat, glam::Vec3A) {
+        let (s, r, t) = glam::Affine3A::to_scale_rotation_translation(self);
+        (s.into(), r, t.into())
+    }
+}
 impl_interface_affine3!(
     glam::DAffine3,
     f64,

@@ -997,7 +997,11 @@ pub trait TMat3<F: FloatScalar>:
     }
 
     #[must_use]
-    fn from_cols(x_axis: F::Vec3, y_axis: F::Vec3, z_axis: F::Vec3) -> Self;
+    fn from_cols(
+        x_axis: <Self as FloatMat<F>>::Col,
+        y_axis: <Self as FloatMat<F>>::Col,
+        z_axis: <Self as FloatMat<F>>::Col,
+    ) -> Self;
     #[must_use]
     fn from_cols_array(m: &[F; 9]) -> Self;
     #[must_use]
@@ -1204,7 +1208,7 @@ pub trait TAffine2<F: FloatScalar>:
 }
 
 pub trait TAffine3<F: FloatScalar>:
-    FloatAffine<F, Vec = F::Vec3, Mat = F::Mat3>
+    FloatAffine<F, Vec: TVec3<F>, Mat: TMat3<F>>
     + TransRotLike3d<F>
     + LossyAlignable<Aligned = glam::Affine3A>
     + ScalarCastable<f32, Casted = glam::Affine3>
@@ -1217,19 +1221,22 @@ pub trait TAffine3<F: FloatScalar>:
     fn maybe_align(&self) -> Self::MaybeAligned;
 
     #[must_use]
-    fn matrix3(&self) -> F::Mat3;
+    fn matrix3(&self) -> <Self as FloatAffine<F>>::Mat;
     #[must_use]
-    fn translation(&self) -> F::Vec3;
+    fn translation(&self) -> <Self as FloatAffine<F>>::Vec;
 
     #[must_use]
     fn from_cols(
-        x_axis: F::Vec3,
-        y_axis: F::Vec3,
-        z_axis: F::Vec3,
-        w_axis: F::Vec3,
+        x_axis: <Self as FloatAffine<F>>::Vec,
+        y_axis: <Self as FloatAffine<F>>::Vec,
+        z_axis: <Self as FloatAffine<F>>::Vec,
+        w_axis: <Self as FloatAffine<F>>::Vec,
     ) -> Self;
     #[must_use]
-    fn from_mat3_translation(matrix3: F::Mat3, translation: F::Vec3) -> Self;
+    fn from_mat3_translation(
+        matrix3: <Self as FloatAffine<F>>::Mat,
+        translation: <Self as FloatAffine<F>>::Vec,
+    ) -> Self;
     #[must_use]
     fn from_cols_array(m: &[F; 12]) -> Self;
     #[must_use]
@@ -1241,17 +1248,26 @@ pub trait TAffine3<F: FloatScalar>:
     #[must_use]
     fn from_quat(rotation: F::Quat) -> Self;
     #[must_use]
-    fn from_axis_angle(axis: F::Vec3, angle: F) -> Self;
+    fn from_axis_angle(axis: <Self as FloatAffine<F>>::Vec, angle: F) -> Self;
     #[must_use]
-    fn from_mat3(mat3: F::Mat3) -> Self;
+    fn from_mat3(mat3: <Self as FloatAffine<F>>::Mat) -> Self;
     #[must_use]
-    fn from_scale_rotation_translation(scale: F::Vec3, rotation: F::Quat, translation: F::Vec3) -> Self;
+    fn from_scale_rotation_translation(
+        scale: <Self as FloatAffine<F>>::Vec,
+        rotation: F::Quat,
+        translation: <Self as FloatAffine<F>>::Vec,
+    ) -> Self;
     #[must_use]
-    fn from_rotation_translation(rotation: F::Quat, translation: F::Vec3) -> Self;
+    fn from_rotation_translation(
+        rotation: F::Quat,
+        translation: <Self as FloatAffine<F>>::Vec,
+    ) -> Self;
     #[must_use]
     fn from_mat4(m: F::Mat4) -> Self;
     #[must_use]
-    fn to_scale_rotation_translation(&self) -> (F::Vec3, F::Quat, F::Vec3);
+    fn to_scale_rotation_translation(
+        &self,
+    ) -> (<Self as FloatAffine<F>>::Vec, F::Quat, <Self as FloatAffine<F>>::Vec);
 }
 
 // ============================================================================

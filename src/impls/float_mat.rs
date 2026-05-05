@@ -221,6 +221,7 @@ macro_rules! impl_interface_mat3 {
         $f:ty,
         $vec2:ty,
         $vec3:ty,
+        $col:ty,
         $mat2:ty,
         $mat4:ty,
         $aligned:ty,
@@ -236,8 +237,8 @@ macro_rules! impl_interface_mat3 {
                 f(self)
             }
             #[inline]
-            fn from_cols(x_axis: $vec3, y_axis: $vec3, z_axis: $vec3) -> Self {
-                let f: fn($vec3, $vec3, $vec3) -> $mat = $from_cols;
+            fn from_cols(x_axis: $col, y_axis: $col, z_axis: $col) -> Self {
+                let f: fn($col, $col, $col) -> $mat = $from_cols;
                 f(x_axis, y_axis, z_axis)
             }
             #[inline]
@@ -297,6 +298,7 @@ impl_interface_mat3!(
     f32,
     glam::Vec2,
     glam::Vec3,
+    glam::Vec3,
     glam::Mat2,
     glam::Mat4,
     glam::Mat3A,
@@ -308,20 +310,18 @@ impl_interface_mat3!(
     f32,
     glam::Vec2,
     glam::Vec3,
+    glam::Vec3A,
     glam::Mat2,
     glam::Mat4,
     glam::Mat3A,
     |m| *m,
-    |x, y, z| glam::Mat3A::from_cols(
-        glam::Vec3A::from(x),
-        glam::Vec3A::from(y),
-        glam::Vec3A::from(z),
-    )
+    |x, y, z| glam::Mat3A::from_cols(x, y, z)
 );
 impl_interface_mat3!(
     glam::DMat3,
     f64,
     glam::DVec2,
+    glam::DVec3,
     glam::DVec3,
     glam::DMat2,
     glam::DMat4,
