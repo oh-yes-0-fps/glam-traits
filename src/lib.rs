@@ -229,6 +229,22 @@ trait ArbitraryShim {}
 #[cfg(not(feature = "arbitrary"))]
 impl<T> ArbitraryShim for T {}
 
+/// Mirror of [`valuable::Valuable`] for `glam` types. Available behind the
+/// `Valuable` feature.
+#[cfg(feature = "Valuable")]
+pub trait GlamValuable {
+    fn as_value(&self) -> valuable::Value<'_>;
+    fn visit(&self, visit: &mut dyn valuable::Visit);
+    fn visit_slice(slice: &[Self], visit: &mut dyn valuable::Visit)
+    where
+        Self: Sized,
+    {
+        for item in slice {
+            visit.visit_value(item.as_value());
+        }
+    }
+}
+
 pub trait FloatVec<F: FloatScalar>:
     BaseType
     + ApproxFloat<F>

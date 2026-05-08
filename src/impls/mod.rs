@@ -6,6 +6,8 @@ mod float_affine;
 mod quat;
 mod bool_vec;
 mod int_vec;
+#[cfg(feature = "Valuable")]
+mod valuable;
 mod assertions;
 
 use crate::{BoolScalar, FloatScalar, IntScalar};

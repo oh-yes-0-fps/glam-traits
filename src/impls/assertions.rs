@@ -354,3 +354,42 @@ const _: fn() = || {
     check2d::<glam::DAffine2>();
     check2d::<glam::DAffine3>();
 };
+
+// ---------------------------------------------------------------------------
+// GlamValuable
+// ---------------------------------------------------------------------------
+
+#[cfg(feature = "Valuable")]
+const _: fn() = || {
+    fn check<T: GlamValuable>() {}
+    check::<glam::Vec2>();
+    check::<glam::Vec3>();
+    check::<glam::Vec3A>();
+    check::<glam::Vec4>();
+    check::<glam::DVec2>();
+    check::<glam::DVec3>();
+    check::<glam::DVec4>();
+    check::<glam::Mat2>();
+    check::<glam::Mat3>();
+    check::<glam::Mat3A>();
+    check::<glam::Mat4>();
+    check::<glam::DMat2>();
+    check::<glam::DMat3>();
+    check::<glam::DMat4>();
+    check::<glam::Quat>();
+    check::<glam::DQuat>();
+    check::<glam::Affine2>();
+    check::<glam::Affine3>();
+    check::<glam::Affine3A>();
+    check::<glam::DAffine2>();
+    check::<glam::DAffine3>();
+    check::<glam::BVec2>();
+    check::<glam::BVec3>();
+    check::<glam::BVec4>();
+    check::<glam::IVec2>();
+    check::<glam::IVec3>();
+    check::<glam::IVec4>();
+    check::<glam::I64Vec2>();
+    check::<glam::I64Vec3>();
+    check::<glam::I64Vec4>();
+};

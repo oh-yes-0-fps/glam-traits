@@ -1,6 +1,6 @@
 [package]
 name = "glam-traits-ext"
-version = "0.32.2"
+version = "0.32.3"
 edition = "2024"
 license = "Apache-2.0"
 authors = ["Bowan Foryt <bowan@valstad.com>"]
@@ -17,6 +17,7 @@ bytemuck = ["dep:bytemuck", "glam/bytemuck"]
 zerocopy = ["dep:zerocopy", "glam/zerocopy"]
 arbitrary = ["dep:arbitrary", "glam/arbitrary"]
 ndarray = ["dep:ndarray"]
+Valuable = ["dep:valuable"]
 
 [dependencies]
 glam = "0.32.1"
@@ -27,3 +28,4 @@ serde = { version = "1", default-features = false, optional = true }
 bytemuck = { version = "1", default-features = false, optional = true }
 zerocopy = { version = "0.8", default-features = false, optional = true }
 arbitrary = { version = "1", default-features = false, optional = true }
+valuable = { version = "0.1", default-features = false, optional = true }
